@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import IconCheck from '~icons/lucide/check'
 import IconClose from '~icons/lucide/x'
+import IconLoaderCircle from '~icons/lucide/loader-circle'
 import IconInfo from '~icons/lucide/info'
 import IconStar from '~icons/lucide/star'
 
@@ -9,16 +11,27 @@ import { useSwipe } from '@/composables/useSwipe'
 import type { DogBreed, DogImage } from '@/models/dog'
 import { VoteValueEnum } from '@/config/enum'
 import type { VoteValue } from '@/config/common'
+import { useDogsStore } from '@/stores/dogs'
 
-const props = defineProps<{
-  image: DogImage
-  breedInfo?: DogBreed | null
-  isVoting: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    image: DogImage
+    breedInfo?: DogBreed | null
+    isVoting: boolean
+    interactive?: boolean
+  }>(),
+  {
+    breedInfo: null,
+    interactive: true,
+  },
+)
 
 const emit = defineEmits<{
   vote: [value: VoteValue]
 }>()
+
+const dogsStore = useDogsStore()
+const { hasLoadedBreedInfo } = storeToRefs(dogsStore)
 
 const showDetails = ref(false)
 const breed = computed(() => props.breedInfo ?? props.image.breeds?.[0])
@@ -47,6 +60,10 @@ const detailFields = computed(() => [
 ])
 
 const toggleDetails = () => {
+  if (!props.interactive) {
+    return
+  }
+
   showDetails.value = !showDetails.value
 }
 
@@ -55,6 +72,10 @@ const closeDetails = () => {
 }
 
 const onCardClick = (event: MouseEvent) => {
+  if (!props.interactive) {
+    return
+  }
+
   const target = event.target
 
   if (target instanceof Element && target.closest('[data-vote-action], [data-card-action]')) {
@@ -64,7 +85,7 @@ const onCardClick = (event: MouseEvent) => {
   toggleDetails()
 }
 
-const isSwipeDisabled = computed(() => props.isVoting)
+const isSwipeDisabled = computed(() => props.isVoting || !props.interactive)
 const {
   cardStyle,
   feedback,
@@ -74,18 +95,29 @@ const {
   onPointerDown,
   onPointerMove,
   onPointerUp,
+  resetFeedback,
 } = useSwipe({
   disabled: isSwipeDisabled,
+  autoResetFeedback: false,
   onSwipe: (direction) => {
     const voteValue: VoteValue = direction === 'left' ? -1 : direction === 'right' ? 1 : 2
     emit('vote', voteValue)
   },
 })
+
+watch(
+  () => props.isVoting,
+  (isVoting, wasVoting) => {
+    if (wasVoting && !isVoting) {
+      resetFeedback()
+    }
+  },
+)
 </script>
 
 <template>
   <p-card
-    class="breed-card mb-7 h-full max-h-full w-full select-none overflow-hidden shadow-xl will-change-transform cursor-pointer"
+    class="breed-card mb-7 w-full select-none overflow-hidden shadow-xl will-change-transform cursor-pointer"
     :class="{
       'cursor-grabbing': isDragging,
       'breed-card--swipe-left': feedback === 'left',
@@ -109,7 +141,7 @@ const {
       <div
         class="breed-card__image-wrapper group relative min-h-0 w-full flex-1 cursor-pointer overflow-hidden"
         role="button"
-        tabindex="0"
+        :tabindex="interactive ? 0 : -1"
         :aria-expanded="showDetails"
         :aria-label="`View details for ${breedName}`"
         @keydown.enter.prevent="toggleDetails"
@@ -158,7 +190,11 @@ const {
               <IconClose class="h-4 w-4" />
             </button>
 
+            <div v-if="!hasLoadedBreedInfo" class="flex justify-center items-center h-full">
+              <IconLoaderCircle class="h-20 w-20 animate-spin opacity-50" />
+            </div>
             <dl
+              v-else
               class="breed-card__details-list m-0 flex flex-1 flex-col justify-center gap-4 overflow-y-auto py-8"
             >
               <div v-for="field in detailFields" :key="field.label" class="breed-card__details-row">
@@ -193,7 +229,7 @@ const {
             severity="danger"
             rounded
             outlined
-            :disabled="isVoting"
+            :disabled="isVoting || !interactive"
             :aria-label="`Dislike ${breedName}`"
             data-vote-action
             v-tooltip.top="`Dislike`"
@@ -205,7 +241,7 @@ const {
             class="!h-[3.75rem] !w-[3.75rem] !text-2xl !text-white !shadow-lg"
             severity="info"
             rounded
-            :disabled="isVoting"
+            :disabled="isVoting || !interactive"
             :aria-label="`Super like ${breedName}`"
             data-vote-action
             v-tooltip.top="`Super like`"
@@ -217,7 +253,7 @@ const {
             class="!h-[3.75rem] !w-[3.75rem] !text-2xl !shadow-lg"
             severity="success"
             rounded
-            :disabled="isVoting"
+            :disabled="isVoting || !interactive"
             :aria-label="`Like ${breedName}`"
             data-vote-action
             v-tooltip.top="`Like`"

@@ -8,7 +8,8 @@ import { dogApi } from '@/services/dogApi'
 import { useUserStore } from '@/stores/user'
 
 export const IMAGE_PROGRESS_STORAGE_KEY = 'dogfinder:dog-progress:v1'
-const BREED_INFO_PREFETCH_DELAY_MS = 1000
+const BREED_INFO_PREFETCH_DELAY_MS = 200
+const VISIBLE_CARD_LIMIT = 5
 
 interface BreedProgress {
   version: 1
@@ -60,12 +61,14 @@ export const useDogsStore = defineStore('dogs', () => {
   const currentIndex = ref(0)
   const isLoading = ref(false)
   const hasLoaded = ref(false)
+  const hasLoadedBreedInfo = ref(true)
   const loadError = ref<string | null>(null)
   const isVoting = ref(false)
   const voteError = ref<string | null>(null)
   const breedInfoById = ref<Record<number, DogBreed>>({})
   const pendingBreedInfoIds = new Set<number>()
   let breedInfoPrefetchTimer: ReturnType<typeof setTimeout> | undefined
+  let imagePrefetchPromise: Promise<boolean> | null = null
   const progress = useLocalStorage<BreedProgress>(
     IMAGE_PROGRESS_STORAGE_KEY,
     { ...INITIAL_PROGRESS },
@@ -76,6 +79,9 @@ export const useDogsStore = defineStore('dogs', () => {
   )
 
   const currentImage = computed(() => images.value[currentIndex.value] ?? null)
+  const visibleImages = computed(() =>
+    images.value.slice(currentIndex.value, currentIndex.value + VISIBLE_CARD_LIMIT),
+  )
   const currentBreedInfo = computed(() => {
     const imageBreed = currentImage.value?.breeds?.[0]
 
@@ -123,6 +129,7 @@ export const useDogsStore = defineStore('dogs', () => {
 
             hasLoaded.value = true
             persistCurrentPosition()
+            void prefetchMoreImages()
             return true
           }
         } catch {
@@ -200,16 +207,19 @@ export const useDogsStore = defineStore('dogs', () => {
       })
 
       const nextIndex = currentIndex.value + 1
+      const reachedQueueEnd = nextIndex >= images.value.length
 
-      if (nextIndex < images.value.length) {
-        currentIndex.value = nextIndex
-      } else {
-        const nextImages = await dogApi.getBreedImages()
-        images.value = nextImages.filter((nextImage) => nextImage.id !== image.id)
-        currentIndex.value = 0
+      if (reachedQueueEnd) {
+        await prefetchMoreImages()
       }
 
+      currentIndex.value = nextIndex < images.value.length ? nextIndex : images.value.length
       persistCurrentPosition()
+
+      if (!reachedQueueEnd) {
+        void prefetchMoreImagesIfNeeded()
+      }
+
       return true
     } catch (caughtError) {
       voteError.value = getErrorMessage(caughtError)
@@ -221,6 +231,39 @@ export const useDogsStore = defineStore('dogs', () => {
 
   const getImageByBreedId = (breedId: number) =>
     images.value.find((image) => image.breeds?.some((breed) => Number(breed.id) === breedId))
+
+  const prefetchMoreImages = () => {
+    if (imagePrefetchPromise) {
+      return imagePrefetchPromise
+    }
+
+    imagePrefetchPromise = (async () => {
+      try {
+        const prefetchedImages = await dogApi.getBreedImages()
+        const knownImageIds = new Set(images.value.map((image) => image.id))
+        const uniqueImages = prefetchedImages.filter((image) => !knownImageIds.has(image.id))
+
+        images.value.push(...uniqueImages)
+        return uniqueImages.length > 0
+      } catch {
+        return false
+      } finally {
+        imagePrefetchPromise = null
+      }
+    })()
+
+    return imagePrefetchPromise
+  }
+
+  const prefetchMoreImagesIfNeeded = () => {
+    const remainingImages = images.value.length - currentIndex.value
+
+    if (remainingImages <= VISIBLE_CARD_LIMIT) {
+      return prefetchMoreImages()
+    }
+
+    return Promise.resolve(false)
+  }
 
   const loadBreedInfo = async (breedId: number) => {
     if (breedInfoById.value[breedId] || pendingBreedInfoIds.has(breedId)) {
@@ -256,8 +299,12 @@ export const useDogsStore = defineStore('dogs', () => {
         return
       }
 
-      breedInfoPrefetchTimer = setTimeout(() => {
-        void loadBreedInfo(breedId)
+      hasLoadedBreedInfo.value = false
+
+      breedInfoPrefetchTimer = setTimeout(async () => {
+        // waiting for the breed info to load
+        await loadBreedInfo(breedId)
+        hasLoadedBreedInfo.value = true
       }, BREED_INFO_PREFETCH_DELAY_MS)
     },
     { immediate: true },
@@ -281,9 +328,11 @@ export const useDogsStore = defineStore('dogs', () => {
     images,
     currentIndex,
     currentImage,
+    visibleImages,
     currentBreedInfo,
     isLoading,
     hasLoaded,
+    hasLoadedBreedInfo,
     isComplete,
     loadError,
     isVoting,
@@ -293,6 +342,7 @@ export const useDogsStore = defineStore('dogs', () => {
     loadImageByBreedId,
     voteForCurrentImage,
     getImageByBreedId,
+    prefetchMoreImagesIfNeeded,
     loadBreedInfo,
     resetProgress,
   }

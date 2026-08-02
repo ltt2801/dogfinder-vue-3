@@ -158,6 +158,7 @@ img {
   width: 100%;
   max-width: var(--content-width);
   margin-inline: auto;
+  padding-top: 1rem;
   outline: none;
 }
 

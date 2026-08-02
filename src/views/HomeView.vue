@@ -12,6 +12,7 @@ const dogsStore = useDogsStore()
 const {
   images,
   currentImage,
+  visibleImages,
   currentBreedInfo,
   hasLoaded,
   isLoading,
@@ -24,6 +25,16 @@ const vote = (value: VoteValue) => {
   void dogsStore.voteForCurrentImage(value)
 }
 
+const getStackStyle = (index: number) => ({
+  zIndex: visibleImages.value.length - index,
+  ...(index === 0
+    ? {}
+    : {
+        transform: `translateY(${index * 0.55}rem) scale(${1 - index * 0.018})`,
+        opacity: 1,
+      }),
+})
+
 onMounted(() => {
   if (!hasLoaded.value) {
     void dogsStore.loadImages()
@@ -33,11 +44,11 @@ onMounted(() => {
 
 <template>
   <section
-    class="flex h-[calc(100vh-var(--header-height))] min-h-[48rem] flex-col items-center gap-6 overflow-hidden md:gap-6"
+    class="flex h-[calc(100dvh-var(--header-height)-1rem)] min-h-[48rem] flex-col items-center gap-6 overflow-hidden md:gap-6"
     aria-labelledby="discovery-heading"
   >
     <header class="mx-auto max-w-[34rem] shrink-0 text-center">
-      <h1 class="mt-3 mb-0 font-[750] tracking-[0.08em] text-[var(--color-primary-dark)] uppercase">
+      <h1 class="my-0 font-[750] tracking-[0.08em] text-[var(--color-primary-dark)] uppercase">
         Find your new best friend
       </h1>
     </header>
@@ -58,14 +69,21 @@ onMounted(() => {
       />
 
       <template v-else-if="currentImage">
-        <BreedDiscoveryCard
-          :key="currentImage.id"
-          class="min-h-0 w-full flex-1"
-          :image="currentImage"
-          :breed-info="currentBreedInfo"
-          :is-voting="isVoting"
-          @vote="vote"
-        />
+        <div class="relative min-h-0 w-full flex-1">
+          <BreedDiscoveryCard
+            v-for="(image, stackIndex) in visibleImages"
+            :key="image.id"
+            class="absolute inset-0 min-h-0 w-full"
+            :class="{ 'pointer-events-none': stackIndex > 0 }"
+            :style="getStackStyle(stackIndex)"
+            :image="image"
+            :breed-info="stackIndex === 0 ? currentBreedInfo : null"
+            :is-voting="isVoting"
+            :interactive="stackIndex === 0"
+            :aria-hidden="stackIndex > 0"
+            @vote="stackIndex === 0 && vote($event)"
+          />
+        </div>
         <p-message
           v-if="voteError"
           class="mt-4 w-full max-w-[28rem]"
