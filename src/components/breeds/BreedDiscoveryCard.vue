@@ -77,7 +77,6 @@ const onCardClick = (event: MouseEvent) => {
   }
 
   const target = event.target
-
   if (target instanceof Element && target.closest('[data-vote-action], [data-card-action]')) {
     return
   }
@@ -113,6 +112,14 @@ watch(
     }
   },
 )
+
+const onVoteClick = (value: VoteValue) => {
+  if (props.isVoting || !props.interactive) {
+    return
+  }
+
+  emit('vote', value)
+}
 </script>
 
 <template>
@@ -233,7 +240,8 @@ watch(
             :aria-label="`Dislike ${breedName}`"
             data-vote-action
             v-tooltip.top="`Dislike`"
-            @click.prevent="emit('vote', VoteValueEnum.Dislike)"
+            @pointerdown.stop
+            @click.stop="onVoteClick(VoteValueEnum.Dislike)"
           >
             <IconClose class="text-red-500" />
           </p-button>
@@ -245,7 +253,8 @@ watch(
             :aria-label="`Super like ${breedName}`"
             data-vote-action
             v-tooltip.top="`Super like`"
-            @click.prevent="emit('vote', VoteValueEnum.SuperLike)"
+            @pointerdown.stop
+            @click.stop="onVoteClick(VoteValueEnum.SuperLike)"
           >
             <IconStar class="fill-current" />
           </p-button>
@@ -257,7 +266,8 @@ watch(
             :aria-label="`Like ${breedName}`"
             data-vote-action
             v-tooltip.top="`Like`"
-            @click.prevent="emit('vote', VoteValueEnum.Like)"
+            @pointerdown.stop
+            @click.stop="onVoteClick(VoteValueEnum.Like)"
           >
             <IconCheck class="text-white" />
           </p-button>
