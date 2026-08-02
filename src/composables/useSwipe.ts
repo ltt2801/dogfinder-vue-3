@@ -5,6 +5,7 @@ export type SwipeDirection = 'left' | 'right' | 'up'
 interface UseSwipeOptions {
   disabled?: MaybeRefOrGetter<boolean>
   threshold?: number
+  autoResetFeedback?: boolean
   onSwipe: (direction: SwipeDirection) => void
 }
 
@@ -17,7 +18,12 @@ const VISUAL_DRAG_FACTOR = 0.9
 const clampVisualOffset = (value: number) =>
   Math.max(-MAX_VISUAL_OFFSET, Math.min(MAX_VISUAL_OFFSET, value * VISUAL_DRAG_FACTOR))
 
-export const useSwipe = ({ disabled = false, threshold = 56, onSwipe }: UseSwipeOptions) => {
+export const useSwipe = ({
+  disabled = false,
+  threshold = 56,
+  autoResetFeedback = true,
+  onSwipe,
+}: UseSwipeOptions) => {
   const activePointerId = ref<number | null>(null)
   const startX = ref(0)
   const startY = ref(0)
@@ -49,6 +55,11 @@ export const useSwipe = ({ disabled = false, threshold = 56, onSwipe }: UseSwipe
     offsetX.value = 0
     offsetY.value = 0
     isDragging.value = false
+  }
+
+  const resetFeedback = () => {
+    clearTimeout(feedbackTimer)
+    feedback.value = null
   }
 
   const onPointerDown = (event: PointerEvent) => {
@@ -130,9 +141,10 @@ export const useSwipe = ({ disabled = false, threshold = 56, onSwipe }: UseSwipe
 
     feedback.value = direction
     onSwipe(direction)
-    feedbackTimer = setTimeout(() => {
-      feedback.value = null
-    }, FEEDBACK_DURATION_MS)
+
+    if (autoResetFeedback) {
+      feedbackTimer = setTimeout(resetFeedback, FEEDBACK_DURATION_MS)
+    }
   }
 
   const onPointerUp = (event: PointerEvent) => finishSwipe(event)
@@ -158,6 +170,7 @@ export const useSwipe = ({ disabled = false, threshold = 56, onSwipe }: UseSwipe
     cardStyle,
     feedback,
     isDragging,
+    resetFeedback,
     onClickCapture,
     onPointerCancel,
     onPointerDown,
