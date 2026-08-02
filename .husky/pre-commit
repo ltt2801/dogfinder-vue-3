@@ -1,0 +1,10 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Check if running natively inside WSL environment
+if [ -n "$WSL_DISTRO_NAME" ] || [ -n "$WSLENV" ]; then
+  npx lint-staged
+else
+  # Fallback when triggered from Windows GUI (e.g., GitHub Desktop)
+  wsl npx lint-staged
+fi
