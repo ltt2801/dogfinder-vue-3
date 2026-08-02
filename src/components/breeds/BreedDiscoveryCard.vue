@@ -6,6 +6,7 @@ import IconClose from '~icons/lucide/x'
 import IconLoaderCircle from '~icons/lucide/loader-circle'
 import IconInfo from '~icons/lucide/info'
 import IconStar from '~icons/lucide/star'
+import IconTrash from '~icons/lucide/trash-2'
 
 import { useSwipe } from '@/composables/useSwipe'
 import type { DogBreed, DogImage } from '@/models/dog'
@@ -19,28 +20,57 @@ const props = withDefaults(
     breedInfo?: DogBreed | null
     isVoting: boolean
     interactive?: boolean
+    allowDetails?: boolean
+    showVoteActions?: boolean
+    showDeleteAction?: boolean
+    isDeleting?: boolean
+    voteValue?: VoteValue
   }>(),
   {
     breedInfo: null,
     interactive: true,
+    allowDetails: true,
+    showVoteActions: true,
+    showDeleteAction: false,
+    isDeleting: false,
+    voteValue: undefined,
   },
 )
 
 const emit = defineEmits<{
   vote: [value: VoteValue]
+  delete: [event: MouseEvent]
 }>()
 
 const dogsStore = useDogsStore()
 const { hasLoadedBreedInfo } = storeToRefs(dogsStore)
 
 const showDetails = ref(false)
-const breed = computed(() => props.breedInfo ?? props.image.breeds?.[0])
+const fetchedBreedInfo = ref<DogBreed | null>(null)
+const isFetchingBreedInfo = ref(false)
+let fetchedForBreedId: number | null = null
+
+const breed = computed(() => props.breedInfo ?? fetchedBreedInfo.value ?? props.image.breeds?.[0])
 const breedName = computed(() => breed.value?.name ?? 'Unknown breed')
+const voteBadge = computed(() => {
+  switch (props.voteValue) {
+    case VoteValueEnum.Dislike:
+      return { label: 'Dislike', severity: 'danger' as const }
+    case VoteValueEnum.Like:
+      return { label: 'Like', severity: 'success' as const }
+    case VoteValueEnum.SuperLike:
+      return { label: 'Super Like', severity: 'info' as const }
+    default:
+      return null
+  }
+})
 
 watch(
   () => props.image.id,
   () => {
     showDetails.value = false
+    fetchedBreedInfo.value = null
+    fetchedForBreedId = null
   },
 )
 
@@ -59,12 +89,36 @@ const detailFields = computed(() => [
   { label: 'Life Span', value: breed.value?.life_span },
 ])
 
+const ensureFullBreedInfoLoaded = async () => {
+  if (props.breedInfo) {
+    return
+  }
+
+  const breedId = Number(props.image.breeds?.[0]?.id)
+  if (!Number.isSafeInteger(breedId) || breedId <= 0 || fetchedForBreedId === breedId) {
+    return
+  }
+
+  fetchedForBreedId = breedId
+  isFetchingBreedInfo.value = true
+
+  try {
+    fetchedBreedInfo.value = await dogsStore.loadBreedInfo(breedId)
+  } finally {
+    isFetchingBreedInfo.value = false
+  }
+}
+
 const toggleDetails = () => {
-  if (!props.interactive) {
+  if (!props.allowDetails) {
     return
   }
 
   showDetails.value = !showDetails.value
+
+  if (showDetails.value) {
+    void ensureFullBreedInfoLoaded()
+  }
 }
 
 const closeDetails = () => {
@@ -72,10 +126,6 @@ const closeDetails = () => {
 }
 
 const onCardClick = (event: MouseEvent) => {
-  if (!props.interactive) {
-    return
-  }
-
   const target = event.target
   if (target instanceof Element && target.closest('[data-vote-action], [data-card-action]')) {
     return
@@ -120,6 +170,14 @@ const onVoteClick = (value: VoteValue) => {
 
   emit('vote', value)
 }
+
+const onDeleteClick = (event: MouseEvent) => {
+  if (props.isDeleting) {
+    return
+  }
+
+  emit('delete', event)
+}
 </script>
 
 <template>
@@ -146,14 +204,32 @@ const onVoteClick = (value: VoteValue) => {
   >
     <template #content>
       <div
-        class="breed-card__image-wrapper group relative min-h-0 w-full flex-1 cursor-pointer overflow-hidden"
-        role="button"
-        :tabindex="interactive ? 0 : -1"
+        class="breed-card__image-wrapper group relative min-h-0 w-full flex-1 overflow-hidden"
+        :class="allowDetails ? 'cursor-pointer' : 'cursor-default'"
+        :role="allowDetails ? 'button' : undefined"
+        :tabindex="allowDetails ? 0 : -1"
         :aria-expanded="showDetails"
         :aria-label="`View details for ${breedName}`"
         @keydown.enter.prevent="toggleDetails"
         @keydown.space.prevent="toggleDetails"
       >
+        <div v-if="voteBadge" class="absolute top-3 left-3 z-10">
+          <p-badge :value="voteBadge.label" :severity="voteBadge.severity" size="xlarge" />
+        </div>
+        <button
+          v-if="showDeleteAction && !showDetails"
+          type="button"
+          class="breed-card__delete-button absolute top-3 right-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full cursor-pointer border-0 bg-black/55 text-white backdrop-blur-sm transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+          :disabled="isDeleting"
+          :aria-label="`Delete vote for ${breedName}`"
+          data-card-action
+          v-tooltip.top="'Delete vote'"
+          @pointerdown.stop
+          @click.stop="onDeleteClick"
+        >
+          <IconLoaderCircle v-if="isDeleting" class="h-4 w-4 animate-spin" />
+          <IconTrash v-else class="h-4 w-4" />
+        </button>
         <div
           v-if="image.url"
           class="h-full w-full bg-contain bg-center bg-no-repeat transition-transform duration-200 group-hover:scale-[1.015]"
@@ -173,7 +249,7 @@ const onVoteClick = (value: VoteValue) => {
           <span>No image available</span>
         </span>
         <span
-          v-if="!showDetails"
+          v-if="!showDetails && allowDetails"
           class="breed-card__hint pointer-events-none absolute right-3 bottom-3 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold text-white opacity-0 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100"
         >
           <IconInfo class="h-3.5 w-3.5" />
@@ -197,22 +273,30 @@ const onVoteClick = (value: VoteValue) => {
               <IconClose class="h-4 w-4" />
             </button>
 
-            <div v-if="!hasLoadedBreedInfo" class="flex justify-center items-center h-full">
+            <div
+              v-if="(interactive && !hasLoadedBreedInfo) || isFetchingBreedInfo"
+              class="flex justify-center items-center h-full"
+            >
               <IconLoaderCircle class="h-20 w-20 animate-spin opacity-50" />
             </div>
-            <dl
-              v-else
-              class="breed-card__details-list m-0 flex flex-1 flex-col justify-center gap-4 overflow-y-auto py-8"
-            >
-              <div v-for="field in detailFields" :key="field.label" class="breed-card__details-row">
-                <dt class="m-0 text-sm font-bold tracking-[0.08em] text-white/65 uppercase">
-                  {{ field.label }}
-                </dt>
-                <dd class="mt-1 mb-0 leading-6 font-medium text-white">
-                  {{ field.value || 'Not available' }}
-                </dd>
+            <div v-else class="mt-9 flex flex-1 flex-col justify-center overflow-y-auto">
+              <div
+                class="breed-card__details-list flex flex-1 flex-col justify-center gap-4 py-8 mt-9"
+              >
+                <div
+                  v-for="field in detailFields"
+                  :key="field.label"
+                  class="breed-card__details-row"
+                >
+                  <dt class="m-0 text-sm font-bold tracking-[0.08em] text-white/65 uppercase">
+                    {{ field.label }}
+                  </dt>
+                  <dd class="mt-1 mb-0 leading-6 font-medium text-white">
+                    {{ field.value || 'Not available' }}
+                  </dd>
+                </div>
               </div>
-            </dl>
+            </div>
           </div>
         </Transition>
       </div>
@@ -230,7 +314,11 @@ const onVoteClick = (value: VoteValue) => {
           </span>
         </div>
 
-        <div class="mt-5 flex justify-center gap-8" aria-label="Choose this breed">
+        <div
+          v-if="showVoteActions"
+          class="mt-5 flex justify-center gap-8"
+          aria-label="Choose this breed"
+        >
           <p-button
             class="!h-[3.75rem] !w-[3.75rem] !text-3xl !shadow-lg"
             severity="danger"

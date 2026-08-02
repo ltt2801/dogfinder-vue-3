@@ -150,10 +150,19 @@ export const createDogApiClient = ({
       )
     },
 
+    getImageById: (imageId: string) => request<DogImage>(`/images/${imageId}`),
+
+    getBreedIdByImageId: (imageId: string) => request<number>(`/images/${imageId}/breeds`),
+
     getInfoByBreedId: (breedId: number) => request<DogBreed>(`/breeds/${breedId}`),
 
     createVote: (payload: CreateVoteRequest) =>
       request<Vote>('/votes', { method: 'POST', body: payload }),
+
+    getVoteBySubId: (subId: string) =>
+      request<Vote[]>(`/votes?sub_id=${encodeURIComponent(subId)}`),
+
+    deleteVote: (voteId: number) => request<void>(`/vote/${voteId}`, { method: 'DELETE' }),
   }
 }
 

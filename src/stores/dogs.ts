@@ -8,7 +8,7 @@ import { dogApi } from '@/services/dogApi'
 import { useUserStore } from '@/stores/user'
 
 export const IMAGE_PROGRESS_STORAGE_KEY = 'dogfinder:dog-progress:v1'
-const BREED_INFO_PREFETCH_DELAY_MS = 200
+const BREED_INFO_PREFETCH_DELAY_MS = 100
 const VISIBLE_CARD_LIMIT = 5
 
 interface BreedProgress {

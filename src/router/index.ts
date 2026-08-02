@@ -13,6 +13,11 @@ export const routes: RouteRecordRaw[] = [
     props: true,
   },
   {
+    path: '/history',
+    name: 'history',
+    component: () => import('@/views/HistoryView.vue'),
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/',
   },

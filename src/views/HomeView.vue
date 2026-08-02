@@ -80,6 +80,7 @@ onMounted(() => {
             :breed-info="stackIndex === 0 ? currentBreedInfo : null"
             :is-voting="isVoting"
             :interactive="stackIndex === 0"
+            :allow-details="stackIndex === 0"
             :aria-hidden="stackIndex > 0"
             @vote="stackIndex === 0 && vote($event)"
           />
