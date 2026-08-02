@@ -1,12 +1,16 @@
 import { createFetch } from '@vueuse/core'
 
-import type { DogBreed } from '@/models/dog'
+import type { DogBreed, DogImage } from '@/models/dog'
 import type { CreateVoteRequest, Vote } from '@/models/vote'
 
 const DEFAULT_BASE_URL = 'https://api.thedogapi.com/v1'
 const DEFAULT_TIMEOUT_MS = 10000
-const DEFAULT_LIMIT_BREEDS = 50
+const DEFAULT_LIMIT_BREEDS = 1
 const DEFAULT_PAGE_BREEDS = 0
+const DEFAULT_ORDER_BREEDS = 'ASC'
+const DEFAULT_LIMIT_BREED_IMAGES = 1
+const DEFAULT_PAGE_BREED_IMAGES = 0
+const DEFAULT_ORDER_BREED_IMAGES = 'RAND'
 
 export interface DogApiClientOptions {
   baseUrl: string
@@ -77,17 +81,15 @@ export const createDogApiClient = ({
       fetch: fetchFn,
       timeout: timeoutMs,
       updateDataOnError: true,
-      async beforeFetch({ options }) {
-        options.headers = {
-          ...options.headers,
-          Accept: 'application/json',
-          'x-api-key': normalizedApiKey,
-        }
-        return { options }
-      },
       onFetchError: ({ data, error, response }) => ({
         error: new DogApiError(getErrorMessage(data, error), response?.status, error),
       }),
+    },
+    fetchOptions: {
+      headers: {
+        Accept: 'application/json',
+        'x-api-key': normalizedApiKey,
+      },
     },
   })
 
@@ -125,8 +127,30 @@ export const createDogApiClient = ({
   }
 
   return {
-    getBreeds: (limit = DEFAULT_LIMIT_BREEDS, page = DEFAULT_PAGE_BREEDS) =>
-      request<DogBreed[]>(`/breeds?limit=${limit}&page=${page}`),
+    getBreeds: (
+      limit = DEFAULT_LIMIT_BREEDS,
+      page = DEFAULT_PAGE_BREEDS,
+      order = DEFAULT_ORDER_BREEDS,
+      has_breeds = 1,
+    ) =>
+      request<DogBreed[]>(
+        `/breeds?limit=${limit}&page=${page}&order=${order}&has_breeds=${has_breeds}`,
+      ),
+
+    getBreedImages: (
+      limit = DEFAULT_LIMIT_BREED_IMAGES,
+      page = DEFAULT_PAGE_BREED_IMAGES,
+      order = DEFAULT_ORDER_BREED_IMAGES,
+      breedId?: number,
+    ) => {
+      const breedFilter = breedId === undefined ? '' : `&breed_ids=${breedId}`
+
+      return request<DogImage[]>(
+        `/images/search?limit=${limit}&page=${page}&size=small&order=${order}&has_breeds=true${breedFilter}`,
+      )
+    },
+
+    getInfoByBreedId: (breedId: number) => request<DogBreed>(`/breeds/${breedId}`),
 
     createVote: (payload: CreateVoteRequest) =>
       request<Vote>('/votes', { method: 'POST', body: payload }),

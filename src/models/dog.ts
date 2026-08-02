@@ -8,13 +8,16 @@ export interface DogImage {
   url: string
   width?: number
   height?: number
+  breeds?: DogBreed[]
+  categories?: string[]
+  colours?: string[]
 }
 
 export interface DogBreed {
   id: number
   name: string
-  weight: DogMeasurement
-  height: DogMeasurement
+  weight?: DogMeasurement
+  height?: DogMeasurement
   bred_for?: string
   breed_group?: string
   life_span?: string
