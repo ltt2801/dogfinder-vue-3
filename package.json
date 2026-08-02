@@ -1,5 +1,5 @@
 {
-  "name": "tuan-le-vuejs-assignment",
+  "name": "tuan-le-vuejs-assessment",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@primeuix/themes": "^3.0.0",
+    "@vueuse/core": "^14.4.0",
     "pinia": "^4.0.2",
     "primevue": "^4.0.0",
     "vue": "^3.5.40",
