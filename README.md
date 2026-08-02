@@ -1,8 +1,12 @@
-# DogFinder 🐕
+# DogFinder - Find New Your Best Friend
 
 A responsive, Tinder-inspired Vue application for discovering dog breeds. Swipe through breed
 cards, learn about each breed, and keep track of your votes with
 [The Dog API](https://thedogapi.com/).
+
+
+
+Demo URL here: [https://dogfinder.lethanhtuan.qzz.io/](https://dogfinder.lethanhtuan.qzz.io/)
 
 ## 📋 Table of Contents
 
@@ -45,7 +49,7 @@ cards, learn about each breed, and keep track of your votes with
 - Restore discovery progress after a page reload.
 - Support pointer and touch gestures across mobile, tablet, and desktop layouts.
 - Provide skeletons, empty states, retry actions, keyboard focus styles, and reduced-motion
-  support.
+support.
 
 > Vote history is stored by The Dog API. Local storage only retains the generated user profile and
 > the current breed position.
@@ -85,40 +89,29 @@ cards, learn about each breed, and keep track of your votes with
 ### Installation
 
 1. Clone the repository and enter the project directory:
-
-   ```bash
+  ```bash
    git clone <repository-url>
    cd tuan-le-vuejs-assignment
-   ```
-
+  ```
 2. Install dependencies:
-
-   ```bash
+  ```bash
    yarn install
-   ```
-
+  ```
 3. Create a local environment file:
-
-   ```bash
+  ```bash
    cp .env .env.local
-   ```
-
+  ```
 4. Add your The Dog API key to `.env.local`:
-
-   ```dotenv
+  ```dotenv
    VITE_DOG_API_URL=https://api.thedogapi.com/v1
    VITE_DOG_API_KEY=your_api_key_here
-   ```
-
+  ```
    `VITE_DOG_API_KEY` is required. `VITE_DOG_API_URL` is optional and defaults to
    `https://api.thedogapi.com/v1`.
-
 5. Start the development server:
-
-   ```bash
+  ```bash
    yarn dev
-   ```
-
+  ```
    The application is available at [http://localhost:3000](http://localhost:3000).
 
 > Never commit a real API key. Use a local environment file for secrets.
@@ -277,3 +270,4 @@ Vote values:
 
 - [The Dog API](https://thedogapi.com/) for breed data and voting endpoints.
 - The Vue, PrimeVue, Tailwind CSS, and Vite communities for the application tooling.
+
