@@ -11,7 +11,13 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    BreedDiscoveryCard: typeof import('./src/components/breeds/BreedDiscoveryCard.vue')['default']
+    BreedDiscoverySkeleton: typeof import('./src/components/breeds/BreedDiscoverySkeleton.vue')['default']
+    BreedDiscoveryState: typeof import('./src/components/breeds/BreedDiscoveryState.vue')['default']
     PButton: typeof import('primevue/button')['default']
+    PCard: typeof import('primevue/card')['default']
+    PMessage: typeof import('primevue/message')['default']
+    PSkeleton: typeof import('primevue/skeleton')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
