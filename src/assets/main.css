@@ -12,7 +12,7 @@
   --color-border: #e7dfd5;
   --shadow-card: 0 1.25rem 3.5rem rgb(72 52 37 / 12%);
   --radius-card: 1.5rem;
-  --content-width: 72rem;
+  --content-width: 100vw;
   --header-height: 4.5rem;
   font-family:
     Inter,
@@ -158,7 +158,6 @@ img {
   width: 100%;
   max-width: var(--content-width);
   margin-inline: auto;
-  padding-top: 1rem;
   outline: none;
 }
 

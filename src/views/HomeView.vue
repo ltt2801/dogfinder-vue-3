@@ -48,7 +48,7 @@ onMounted(() => {
     aria-labelledby="discovery-heading"
   >
     <header class="mx-auto max-w-[34rem] shrink-0 text-center">
-      <h1 class="my-0 font-[750] tracking-[0.08em] text-[var(--color-primary-dark)] uppercase">
+      <h1 class="mt-6 my-0 font-[750] tracking-[0.08em] text-[var(--color-primary-dark)] uppercase">
         Find your new best friend
       </h1>
     </header>
