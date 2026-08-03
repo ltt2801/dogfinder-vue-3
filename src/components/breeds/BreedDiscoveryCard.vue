@@ -227,7 +227,10 @@ const onDeleteClick = (event: MouseEvent) => {
           <IconLoaderCircle v-if="isDeleting" class="h-4 w-4 animate-spin" />
           <IconTrash v-else class="h-4 w-4" />
         </button>
-        <div v-if="voteBadge" class="absolute top-3 right-3 z-10">
+        <div
+          v-if="voteBadge && !showDetails"
+          class="absolute top-3 right-3 z-10"
+        >
           <p-badge :value="voteBadge.label" :severity="voteBadge.severity" size="xlarge" />
         </div>
         <div
