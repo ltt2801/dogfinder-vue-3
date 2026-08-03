@@ -367,7 +367,12 @@ const onDeleteClick = (event: MouseEvent) => {
 
 <style scoped>
 .breed-card {
-  touch-action: pan-down pinch-zoom;
+  /*
+   * iOS Safari may cancel the pointer stream when it starts native
+   * scrolling or rubber-band overscrolling.
+   */
+  touch-action: none;
+  overscroll-behavior: none;
   transform-origin: center center;
 }
 
