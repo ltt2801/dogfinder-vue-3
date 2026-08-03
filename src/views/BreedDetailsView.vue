@@ -83,9 +83,9 @@ onMounted(loadBreed)
 </script>
 
 <template>
-  <section class="pt-6 mx-auto w-full max-w-[68rem]" aria-label="Breed details">
+  <section class="pt-6 mx-auto w-full max-w-[80%] lg:max-w-[68rem]" aria-label="Breed details">
     <RouterLink
-      class="mb-6 inline-flex items-center gap-2 font-bold text-[var(--color-primary-dark)] underline-offset-4 min-[52rem]:mb-8"
+      class="-ml-6 md:ml-0 mb-6 inline-flex items-center gap-2 font-bold text-[var(--color-primary-dark)] underline-offset-4 min-[52rem]:mb-8"
       to="/"
       aria-label="Back to breed discovery"
     >

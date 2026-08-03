@@ -44,16 +44,16 @@ onMounted(() => {
 
 <template>
   <section
-    class="flex h-[calc(100dvh-var(--header-height)-1rem)] min-h-[48rem] flex-col items-center gap-6 overflow-hidden md:gap-6"
+    class="home-view-section flex h-[calc(100dvh-var(--header-height))] min-h-[48rem] flex-col items-center gap-6 overflow-hidden md:gap-6"
     aria-labelledby="discovery-heading"
   >
     <header class="mx-auto max-w-[34rem] shrink-0 text-center">
-      <h1 class="mt-6 my-0 font-[750] tracking-[0.08em] text-[var(--color-primary-dark)] uppercase">
+      <h1 class="mt-6 my-0 text-base md:text-2xl font-[750] tracking-[0.08em] text-[var(--color-primary-dark)] uppercase">
         Find your new best friend
       </h1>
     </header>
 
-    <div class="flex min-h-0 w-full max-w-[95%] md:w-[40rem] flex-1 flex-col items-center">
+    <div class="flex min-h-0 w-full max-w-[80%] md:w-[40rem] flex-1 flex-col items-center">
       <BreedDiscoverySkeleton
         v-if="isLoading || (!hasLoaded && !loadError)"
         class="h-full w-full"
@@ -69,7 +69,7 @@ onMounted(() => {
       />
 
       <template v-else-if="currentImage">
-        <div class="relative min-h-0 w-full flex-1">
+        <div class="relative min-h-0 w-full flex-1 mb-3">
           <BreedDiscoveryCard
             v-for="(image, stackIndex) in visibleImages"
             :key="image.id"

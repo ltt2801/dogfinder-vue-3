@@ -97,11 +97,11 @@ onMounted(loadHistory)
 </script>
 
 <template>
-  <section class="pt-6 mx-auto w-full max-w-[80rem]" aria-labelledby="history-heading">
+  <section class="pt-6 mx-auto w-full max-w-[80%]" aria-labelledby="history-heading">
     <p-confirm-popup />
 
     <RouterLink
-      class="mb-6 inline-flex items-center gap-2 font-bold text-[var(--color-primary-dark)] underline-offset-4"
+      class="-ml-6 md:ml-0 mb-6 inline-flex items-center gap-2 font-bold text-[var(--color-primary-dark)] underline-offset-4"
       to="/"
       aria-label="Back to breed discovery"
     >
