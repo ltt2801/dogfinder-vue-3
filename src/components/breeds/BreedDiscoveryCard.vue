@@ -282,9 +282,9 @@ const onDeleteClick = (event: MouseEvent) => {
             >
               <IconLoaderCircle class="h-20 w-20 animate-spin opacity-50" />
             </div>
-            <div v-else class="mt-9 flex flex-1 flex-col justify-center overflow-y-auto">
+            <div v-else class="mt-9 flex flex-1 flex-col justify-start overflow-y-auto">
               <div
-                class="breed-card__details-list flex flex-1 flex-col justify-center gap-4 py-8 mt-9"
+                class="breed-card__details-list flex flex-1 flex-col justify-center gap-4 pb-1"
               >
                 <div
                   v-for="field in detailFields"
