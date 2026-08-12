@@ -158,8 +158,8 @@ img {
   width: 100%;
   max-width: var(--content-width);
   margin-inline: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-bottom: calc(constant(safe-area-inset-bottom)); /* iOS 11.0 - 11.2 */
+  padding-bottom: calc(env(safe-area-inset-bottom));
   outline: none;
 }
 
@@ -229,6 +229,12 @@ img {
     height: 1px;
     clip-path: inset(50%);
     white-space: nowrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-view-section {
+    padding-bottom: 36px;
   }
 }
 

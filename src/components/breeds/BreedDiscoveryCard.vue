@@ -213,13 +213,10 @@ const onDeleteClick = (event: MouseEvent) => {
         @keydown.enter.prevent="toggleDetails"
         @keydown.space.prevent="toggleDetails"
       >
-        <div v-if="voteBadge" class="absolute top-3 left-3 z-10">
-          <p-badge :value="voteBadge.label" :severity="voteBadge.severity" size="xlarge" />
-        </div>
         <button
           v-if="showDeleteAction && !showDetails"
           type="button"
-          class="breed-card__delete-button absolute top-3 right-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full cursor-pointer border-0 bg-black/55 text-white backdrop-blur-sm transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+          class="breed-card__delete-button absolute top-3 left-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full cursor-pointer border-0 bg-black/55 text-white backdrop-blur-sm transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
           :disabled="isDeleting"
           :aria-label="`Delete vote for ${breedName}`"
           data-card-action
@@ -230,6 +227,12 @@ const onDeleteClick = (event: MouseEvent) => {
           <IconLoaderCircle v-if="isDeleting" class="h-4 w-4 animate-spin" />
           <IconTrash v-else class="h-4 w-4" />
         </button>
+        <div
+          v-if="voteBadge && !showDetails"
+          class="absolute top-3 right-3 z-10"
+        >
+          <p-badge :value="voteBadge.label" :severity="voteBadge.severity" size="xlarge" />
+        </div>
         <div
           v-if="image.url"
           class="h-full w-full bg-contain bg-center bg-no-repeat transition-transform duration-200 group-hover:scale-[1.015]"
@@ -279,9 +282,9 @@ const onDeleteClick = (event: MouseEvent) => {
             >
               <IconLoaderCircle class="h-20 w-20 animate-spin opacity-50" />
             </div>
-            <div v-else class="mt-9 flex flex-1 flex-col justify-center overflow-y-auto">
+            <div v-else class="mt-9 flex flex-1 flex-col justify-start overflow-y-auto">
               <div
-                class="breed-card__details-list flex flex-1 flex-col justify-center gap-4 py-8 mt-9"
+                class="breed-card__details-list flex flex-1 flex-col justify-center gap-4 pb-1"
               >
                 <div
                   v-for="field in detailFields"
@@ -365,9 +368,14 @@ const onDeleteClick = (event: MouseEvent) => {
   </p-card>
 </template>
 
-<style scoped>
+<style lang="css" scoped>
 .breed-card {
-  touch-action: pan-down pinch-zoom;
+  /*
+   * iOS Safari may cancel the pointer stream when it starts native
+   * scrolling or rubber-band overscrolling.
+   */
+  touch-action: none;
+  overscroll-behavior: none;
   transform-origin: center center;
 }
 

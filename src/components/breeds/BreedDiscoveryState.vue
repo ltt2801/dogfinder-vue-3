@@ -19,7 +19,7 @@ const emit = defineEmits<{
 
 <template>
   <p-card
-    class="w-full max-w-[34rem] text-center shadow-xl"
+    class="w-full max-w-[34rem] mx-auto text-center shadow-xl"
     :role="isError ? 'alert' : 'status'"
     aria-live="polite"
   >

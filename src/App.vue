@@ -82,7 +82,7 @@ const closeUserMenu = () => {
           </div>
 
           <RouterLink
-            class="flex min-h-12 items-center gap-3 rounded-xl px-3 py-2 font-bold text-[var(--color-primary-dark)] no-underline hover:bg-black/5 focus:bg-black/5"
+            class="user-menu-item flex min-h-12 items-center gap-3 rounded-xl px-3 py-2 font-bold text-[var(--color-primary-dark)] no-underline hover:bg-black/5"
             to="/history"
             role="menuitem"
             @click="closeUserMenu"
@@ -108,3 +108,9 @@ const closeUserMenu = () => {
     ></div>
   </div>
 </template>
+
+<style lang="css">
+.user-menu-item:focus-visible {
+  outline: none;
+}
+</style>
